@@ -21,12 +21,12 @@ $(target): $(objs)
 
 ifeq ($(is_root_root),root)
 install: $(target)
-	sudo install -m 666 $(target) $(CROSS_C_ROOT_PATH)/usr/lib
-	sudo install -m 666  libtrace.h $(CROSS_C_ROOT_PATH)/usr/include
+	sudo install -m 0755 $(target) $(CROSS_C_ROOT_PATH)/usr/lib
+	sudo install -m 0755  libtrace.h $(CROSS_C_ROOT_PATH)/usr/include
 else
 install: $(target)
-	install -m 666 $(target) $(CROSS_C_ROOT_PATH)/usr/lib
-	install -m 666  libtrace.h $(CROSS_C_ROOT_PATH)/usr/include
+	install -m 0755 $(target) $(CROSS_C_ROOT_PATH)/usr/lib
+	install -m 0755 libtrace.h $(CROSS_C_ROOT_PATH)/usr/include
 endif
 
 clean:
