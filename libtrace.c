@@ -133,21 +133,24 @@ void trace_backtrace(void){
 	int symnum = 0;
 	char ** symbols;
 	int i;
+	char * trace_mode = getenv(mode_v);
 
-	symnum = backtrace(buf,1024);
-	if (symnum < 1)
-		return;
-	
-	symbols = backtrace_symbols(buf,symnum);
-	if (symbols) {
-		__trace_msg("===============================\n");
-		__trace_msg("Backtrace: %d founds\n",symnum);
-		for (i = 0; i < symnum ; i++){
-			__trace_msg("\t%s\n",symbols[i]);
+	if (trace_mode && ((strcmp(trace_mode,"BT") == 0) || (strcmp(trace_mode,"ALL") == 0))){
+		symnum = backtrace(buf,1024);
+		if (symnum < 1)
+			return;
+		
+		symbols = backtrace_symbols(buf,symnum);
+		if (symbols) {
+			__trace_msg("===============================\n");
+			__trace_msg("Backtrace: %d founds\n",symnum);
+			for (i = 0; i < symnum ; i++){
+				__trace_msg("\t%s\n",symbols[i]);
+			}
+			__trace_msg("===============================\n");
+		} else {
+			__trace_msg("No symbols found.\n");
 		}
-		__trace_msg("===============================\n");
-	} else {
-		__trace_msg("No symbols found.\n");
 	}
 }
 
