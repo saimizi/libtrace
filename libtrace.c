@@ -10,6 +10,8 @@
 #include <stdarg.h>
 #include <dlfcn.h>
 
+#include <execinfo.h>
+
 #include "libtrace.h"
 
 static int trace_fd = -1;
@@ -53,10 +55,10 @@ void output(char * buf, int size){
 	if (buf == NULL || size <= 0)
 		return;
 
-	if (strcmp(out_mode,"FTRACE") == 0) {
+	if (out_mode && (strcmp(out_mode,"FTRACE") == 0)) {
 		if (trace_fd > 0)
 			outfd = trace_fd;
-	} else if (strcmp(out_mode,"LOG") == 0) {
+	} else if (out_mode && (strcmp(out_mode,"LOG") == 0)) {
 		if (log_fd > 0)
 			outfd = log_fd;
 	} else {
@@ -125,3 +127,27 @@ void trace_msg(const char *fmt,...){
 		output(buf,n);
 	}
 }
+
+void trace_backtrace(void){
+	void * buf[1024];
+	int symnum = 0;
+	char ** symbols;
+	int i;
+
+	symnum = backtrace(buf,1024);
+	if (symnum < 1)
+		return;
+	
+	symbols = backtrace_symbols(buf,symnum);
+	if (symbols) {
+		__trace_msg("===============================\n");
+		__trace_msg("Backtrace: %d founds\n",symnum);
+		for (i = 0; i < symnum ; i++){
+			__trace_msg("\t%s\n",symbols[i]);
+		}
+		__trace_msg("===============================\n");
+	} else {
+		__trace_msg("No symbols found.\n");
+	}
+}
+
