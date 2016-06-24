@@ -128,7 +128,7 @@ void trace_msg(const char *fmt,...){
 	}
 }
 
-void trace_backtrace(void){
+void trace_backtrace_sym(const char * fn){
 	void * buf[1024];
 	int symnum = 0;
 	char ** symbols;
@@ -143,7 +143,7 @@ void trace_backtrace(void){
 		symbols = backtrace_symbols(buf,symnum);
 		if (symbols) {
 			__trace_msg("===============================\n");
-			__trace_msg("Backtrace: %d founds\n",symnum);
+			__trace_msg("%s() Backtrace: %d founds\n",fn ? fn:"Func",symnum);
 			for (i = 0; i < symnum ; i++){
 				__trace_msg("\t%s\n",symbols[i]);
 			}
@@ -153,4 +153,3 @@ void trace_backtrace(void){
 		}
 	}
 }
-

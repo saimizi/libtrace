@@ -5,5 +5,7 @@
 
 void trace_msg(const char *fmt,...);
 void trace_backtrace(void);
+void trace_backtrace_sym(const char * fn);
+#define trace_backtrace()	trace_backtrace_sym(NULL)
 
 #endif /*__LIBTRACE_H__*/

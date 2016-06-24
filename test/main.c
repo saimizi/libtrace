@@ -12,7 +12,7 @@
 
 void func121(){
 	trace_msg("%s - %d run.\n",__func__,__LINE__);
-	trace_backtrace();
+	trace_backtrace_sym(__func__);
 }
 
 void func12(){
