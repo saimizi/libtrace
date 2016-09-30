@@ -23,9 +23,9 @@ all: $(target)
 
 $(target): $(objs)
 	$(CC) $^  -o $@ $(LDFLAGS)
-	@unlink $(SONAME) 2>/dev/null || true
+	unlink $(SONAME) 2>/dev/null || true
 	ln -s $(target) $(SONAME)
-	@unlink $(LINKER_NAEME) 2>/dev/null || true
+	unlink $(LINKER_NAME) 2>/dev/null || true
 	ln -s $(SONAME) $(LINKER_NAME)
 
 %.o: %.c
