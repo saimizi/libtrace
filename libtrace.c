@@ -145,7 +145,7 @@ void __cyg_profile_func_exit(void* func_address, void* call_site) {
 void trace_msg(const char *fmt,...){
 	char * trace_mode = getenv(mode_v);
 
-	if (trace_mode && ((strcmp(trace_mode,"FC") == 0) || (strcmp(trace_mode,"ALL") == 0))){
+	if (trace_mode && ((strcmp(trace_mode,"FC") == 0) || (strcmp(trace_mode,"FT") == 0) || (strcmp(trace_mode,"ALL") == 0))){
 		va_list ap;
 		char buf[MAX_TRACE_MSG_SIZE];
 		int n;
