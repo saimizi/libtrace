@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <dlfcn.h>
+#include <sys/time.h>
 
 #include <execinfo.h>
 
@@ -51,11 +52,37 @@ void __attribute__ ((destructor)) libtrace_fini(void){
 void output(char * buf, int size){
 	char * out_mode = getenv(output_v);
 	int outfd = -1;
+	struct timeval tv;
+	int ret = 0;
+	char * outbuf = NULL;
+	int malloced = 0;
+	
 	
 	if (buf == NULL || size <= 0)
 		return;
 
+	ret = gettimeofday(&tv,NULL);
+	if (!ret){
+		int len = strlen(buf) + 128;
+		outbuf = (char *)malloc(len);
+		if (outbuf){
+			sprintf(outbuf,"%lu.%lu: %s",(unsigned long)tv.tv_sec,(unsigned long)tv.tv_usec,buf);
+			malloced = 1;
+		} else {
+			outbuf = buf;
+		}
+		
+	} else {
+		outbuf = buf;
+	}
+
 	if (out_mode && (strcmp(out_mode,"FTRACE") == 0)) {
+		/* Ftrace will add timestamp itself */
+		if (malloced){
+			free(outbuf);
+			outbuf = buf;
+		}
+
 		if (trace_fd > 0)
 			outfd = trace_fd;
 	} else if (out_mode && (strcmp(out_mode,"LOG") == 0)) {
@@ -65,7 +92,10 @@ void output(char * buf, int size){
 		outfd = fileno(stdout);
 	}
 	
-	write(outfd, buf, size);
+	write(outfd, outbuf, strlen(outbuf));
+
+	if (malloced)
+		free(outbuf);
 
 }
 
