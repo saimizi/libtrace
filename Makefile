@@ -32,9 +32,9 @@ $(target): $(objs)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 install: $(target)
-	install -m 0755 $(target) $(CROSS_C_ROOT_PATH)/usr/local/lib
-	cp -d $(SONAME) $(LINKER_NAME) $(MAKETOP)/usr/local/lib/
-	install -m 0644 libtrace.h $(CROSS_C_ROOT_PATH)/usr/local/include
+	install -m 0755 $(target) $(ROOTFS)/usr/local/lib
+	cp -d $(SONAME) $(LINKER_NAME) $(ROOTFS)/usr/local/lib/
+	install -m 0644 libtrace.h $(ROOTFS)/usr/local/include
 	make -C test install
 
 clean:
