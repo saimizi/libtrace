@@ -66,7 +66,7 @@ void output(char * buf, int size){
 		int len = strlen(buf) + 128;
 		outbuf = (char *)malloc(len);
 		if (outbuf){
-			sprintf(outbuf,"%lu.%lu: %s",(unsigned long)tv.tv_sec,(unsigned long)tv.tv_usec,buf);
+			sprintf(outbuf,"%d.%06d : %s",(int)tv.tv_sec,(int)tv.tv_usec,buf);
 			malloced = 1;
 		} else {
 			outbuf = buf;
