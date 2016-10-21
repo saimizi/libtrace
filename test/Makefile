@@ -22,4 +22,4 @@ $(TARGET):$(OBJS)
 clean:
 	- rm -fr $(TARGET) $(OBJS) 2>/dev/null
 install:$(TARGET)
-	install -m755 $(TARGET) $(MAKETOP)/usr/bin/
+	install -m755 $(TARGET) $(ROOTFS)/usr/bin/
