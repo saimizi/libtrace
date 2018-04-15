@@ -31,6 +31,7 @@ struct system_info {
 
 
 #define LOOP_CTL_FILE	"/dev/loop-control"
+#define VIRT_ROOT_DIR	"/virtsys"
 
 static int setup_loopdevice(char *image_file)
 {
@@ -139,6 +140,18 @@ int system_init(void *arg)
 		char *const argenv[] = { NULL };
 		ssize_t path_len = 0;
 
+		if (access(VIRT_ROOT_DIR, F_OK)) {
+			ret = mkdir(VIRT_ROOT_DIR, 0777);
+			if (ret) {
+				ret = -1;
+				fprintf(stderr,
+					"Failed to mkdir(): %s(%d).\n",
+					strerror(errno),
+					errno);
+				break;
+			}
+		}
+
 		if (!is_system_info_ok(si)) {
 			fprintf(stderr, "Invalid system info.\n");
 			break;
@@ -152,7 +165,7 @@ int system_init(void *arg)
 		}
 
 		mount_point = si->root;
-		sprintf(mount_point, "/virtsys/sys-%lu", si->sysid);
+		sprintf(mount_point, VIRT_ROOT_DIR"/sys-%lu", si->sysid);
 		if (access(mount_point, F_OK)) {
 			ret = mkdir(mount_point, 0777);
 			if (ret) {
