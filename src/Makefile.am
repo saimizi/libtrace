@@ -5,12 +5,16 @@ libfflag_la_SOURCES = libfflag.c
 include_HEADERS = libfflag.h
 
 
-bin_PROGRAMS = waitflag
-waitflag_SOURCES=waitflag.c
-waitflag_LDADD = libfflag.la
+bin_PROGRAMS = waitfflag
+waitfflag_SOURCES=waitfflag.c
+waitfflag_LDADD = libfflag.la
 
 install-exec-hook:
-	unlink $(DESTDIR)$(bindir)/waitflagon 2>/dev/null || true
-	unlink $(DESTDIR)$(bindir)/waitflagoff 2>/dev/null || true
-	ln -s $(DESTDIR)$(bindir)/waitflag $(DESTDIR)$(bindir)/waitflagon
-	ln -s $(DESTDIR)$(bindir)/waitflag $(DESTDIR)$(bindir)/waitflagoff
+	unlink $(DESTDIR)$(bindir)/waitfflagon 2>/dev/null || true
+	unlink $(DESTDIR)$(bindir)/waitfflagoff 2>/dev/null || true
+	unlink $(DESTDIR)$(bindir)/setfflag 2>/dev/null || true
+	unlink $(DESTDIR)$(bindir)/clearfflag 2>/dev/null || true
+	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/waitfflagon
+	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/waitfflagoff
+	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/setfflag
+	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/clearfflag

@@ -10,15 +10,26 @@ int main(int argc, char *argv[])
 	int ret  = 1;
 
 	do {
-		if (!strcmp(basename(argv[0]), "waitflagon")) {
+		if (!strcmp(basename(argv[0]), "waitfflagon")) {
 			ret = wait_flag_on(argv[1]);
 			break;
 		}
 
-		if (!strcmp(basename(argv[0]), "waitflagoff")) {
+		if (!strcmp(basename(argv[0]), "waitfflagoff")) {
 			ret = wait_flag_off(argv[1]);
 			break;
 		}
+
+		if (!strcmp(basename(argv[0]), "setfflag")) {
+			ret = set_flag(argv[1]);
+			break;
+		}
+
+		if (!strcmp(basename(argv[0]), "clearfflag")) {
+			ret = clear_flag(argv[1]);
+			break;
+		}
+
 	} while (0);
 
 	/* if success return 0 otherwise return 1 */

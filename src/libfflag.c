@@ -4,10 +4,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
 #include <limits.h>
 
 #include <sys/inotify.h>
+
 
 #define FFLAG_DIR		"/tmp/fflag"
 #define FFLAG_DIR_PERM		0744
@@ -213,5 +215,75 @@ int wait_flag_off(const char *flag)
 	} while (0);
 
 	return ret;
+}
+
+int set_flag(const char *flag)
+{
+	int ret = -1;
+	char buf[NAME_BUFSZ];
+	char *event_buf;
+
+	do {
+		struct stat	st;
+
+		if (!flag)
+			break;
+
+		if (strlen(flag) > MAX_FLAG_SIZE)
+			break;
+
+		if (initcheck() < 0)
+			break;
+
+		/* Flag is set yet */
+		sprintf(buf, "%s/%s", FFLAG_DIR, flag);
+		if (!stat(buf, &st)) {
+			ret = 0;
+			break;
+		}
+
+		if (open(buf, O_CREAT, 0744) == -1)
+			break;
+
+		ret = 0;
+
+	} while (0);
+
+	return ret;
+}
+
+int clear_flag(const char *flag)
+{
+	int ret = -1;
+	char buf[NAME_BUFSZ];
+	char *event_buf;
+
+	do {
+		struct stat	st;
+
+		if (!flag)
+			break;
+
+		if (strlen(flag) > MAX_FLAG_SIZE)
+			break;
+
+		if (initcheck() < 0)
+			break;
+
+		/* Flag is set yet */
+		sprintf(buf, "%s/%s", FFLAG_DIR, flag);
+		if (stat(buf, &st)) {
+			ret = 0;
+			break;
+		}
+
+		if (unlink(buf) == -1)
+		break;
+
+	ret = 0;
+
+} while (0);
+
+return ret;
 }
 
