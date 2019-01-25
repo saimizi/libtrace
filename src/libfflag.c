@@ -10,12 +10,12 @@
 #include <sys/inotify.h>
 
 #define FFLAG_DIR		"/tmp/fflag"
-#define FFLAG_DIR_PERM		(S_IRWXU | S_IRGRP | S_IROTH)
+#define FFLAG_DIR_PERM		0744
 
 #define NAME_BUFSZ			128
 #define MAX_FLAG_SIZE		(NAME_BUFSZ - strlen(FFLAG_DIR) - 2)
 
-#define EVENT_BUF_LEN 		(1 * (sizeof(struct inotify_event) + NAME_MAX + 1))
+#define EVENT_BUF_LEN	(1 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 
 static inline int is_fflag_dir_perm_ok(mode_t mode)
 {
@@ -25,11 +25,11 @@ static inline int is_fflag_dir_perm_ok(mode_t mode)
 static int is_fflag_dir_ok(const char *dir)
 {
 	int ret = -1;
-	
+
 	do {
 		struct stat	st;
 
-		if (stat(FFLAG_DIR, &st) < 0){
+		if (stat(FFLAG_DIR, &st) < 0) {
 			ret = 0;
 			break;
 		}
@@ -57,7 +57,7 @@ int initcheck(void)
 		tmpret = is_fflag_dir_ok(FFLAG_DIR);
 		if (tmpret < 0)
 			break;
-		else if (!tmpret && mkdir(FFLAG_DIR, FFLAG_DIR_PERM)) 
+		else if (!tmpret && mkdir(FFLAG_DIR, FFLAG_DIR_PERM))
 			break;
 
 		ret = 0;
@@ -166,7 +166,8 @@ int wait_flag_off(const char *flag)
 		if (inotifyFd < 0)
 			break;
 
-		if (inotify_add_watch(inotifyFd, FFLAG_DIR, IN_DELETE | IN_DELETE_SELF) < 0)
+		if (inotify_add_watch(inotifyFd,
+			FFLAG_DIR, IN_DELETE | IN_DELETE_SELF) < 0)
 			break;
 
 		/* Flag is not set yet */
@@ -193,7 +194,8 @@ int wait_flag_off(const char *flag)
 
 				event = (struct inotify_event *)p;
 				if (event->mask & IN_DELETE) {
-					if (event->name && !strcmp(flag, event->name)) {
+					if (event->name &&
+						!strcmp(flag, event->name)) {
 						ret = 0;
 						break;
 					}
