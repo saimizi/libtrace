@@ -5,8 +5,11 @@ AC_PREREQ([2.69])
 AC_INIT([fflag], [0.1], [BUG-REPORT-ADDRESS])
 AC_CONFIG_SRCDIR([src/waitflag.c])
 #AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIRS([m4])
 
 AM_INIT_AUTOMAKE
+
+LT_INIT
 
 # Checks for programs.
 AC_PROG_CC
