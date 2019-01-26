@@ -14,7 +14,7 @@ install-exec-hook:
 	unlink $(DESTDIR)$(bindir)/waitfflagoff 2>/dev/null || true
 	unlink $(DESTDIR)$(bindir)/setfflag 2>/dev/null || true
 	unlink $(DESTDIR)$(bindir)/clearfflag 2>/dev/null || true
-	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/waitfflagon
-	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/waitfflagoff
-	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/setfflag
-	ln -s $(DESTDIR)$(bindir)/waitfflag $(DESTDIR)$(bindir)/clearfflag
+	cd $(DESTDIR)$(bindir); ln -s waitfflag waitfflagon
+	cd $(DESTDIR)$(bindir); ln -s waitfflag waitfflagoff
+	cd $(DESTDIR)$(bindir); ln -s waitfflag setfflag
+	cd $(DESTDIR)$(bindir); ln -s waitfflag clearfflag
