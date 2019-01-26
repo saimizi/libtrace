@@ -16,7 +16,8 @@
 
 #ifdef DEBUG
 #define libfflag_dbg(fmt, ...) \
-	fprintf(stderr, "[libfflag] %s() Debug: "fmt, __func__, ## __VA_ARGS__)
+	fprintf(stderr, "[libfflag] %s() - %d Debug: "\
+		fmt, __func__, __LINE__,  ## __VA_ARGS__)
 #else
 #define libfflag_dbg(fmt, ...)
 #endif
@@ -28,7 +29,54 @@
 #define NAME_BUFSZ			128
 #define MAX_FLAG_SIZE		(NAME_BUFSZ - strlen(FFLAG_DIR) - 2)
 
-#define EVENT_BUF_LEN	(1 * (sizeof(struct inotify_event) + NAME_MAX + 1))
+#define EVENT_BUF_LEN	(1 * (sizeof(struct inotify_event) + MAX_FLAG_SIZE + 1))
+
+void print_event(struct inotify_event *i)
+{
+#ifdef DEBUG
+	printf(" wd =%2d; ", i->wd);
+	if (i->cookie > 0)
+		printf("cookie =%4d; ", i->cookie);
+	printf("mask = ");
+	if (i->mask & IN_ACCESS)
+		printf("IN_ACCESS ");
+	if (i->mask & IN_ATTRIB)
+		printf("IN_ATTRIB ");
+	if (i->mask & IN_CLOSE_NOWRITE)
+		printf("IN_CLOSE_NOWRITE ");
+	if (i->mask & IN_CLOSE_WRITE)
+		printf("IN_CLOSE_WRITE ");
+	if (i->mask & IN_CREATE)
+		printf("IN_CREATE ");
+	if (i->mask & IN_DELETE)
+		printf("IN_DELETE ");
+	if (i->mask & IN_DELETE_SELF)
+		printf("IN_DELETE_SELF ");
+	if (i->mask & IN_IGNORED)
+		printf("IN_IGNORED ");
+	if (i->mask & IN_ISDIR)
+		printf("IN_ISDIR ");
+	if (i->mask & IN_MODIFY)
+		printf("IN_MODIFY ");
+	if (i->mask & IN_MOVE_SELF)
+		printf("IN_MOVE_SELF ");
+	if (i->mask & IN_MOVED_FROM)
+		printf("IN_MOVED_FROM ");
+	if (i->mask & IN_MOVED_TO)
+		printf("IN_MOVED_TO ");
+	if (i->mask & IN_OPEN)
+		printf("IN_OPEN ");
+	if (i->mask & IN_Q_OVERFLOW)
+		printf("IN_Q_OVERFLOW ");
+	if (i->mask & IN_UNMOUNT)
+		printf("IN_UNMOUNT ");
+
+	printf("\n");
+
+	if (i->len > 0)
+		printf(" name = %s\n", i->name);
+#endif
+}
 
 static inline int is_fflag_dir_perm_ok(mode_t mode)
 {
@@ -75,8 +123,8 @@ int is_flag_ok(const char *flag)
 		}
 
 		if (strlen(flag) > MAX_FLAG_SIZE) {
-			libfflag_err("Flag %s is too long (%d > MAX=%d).\n",
-				flag, strlen(flag), MAX_FLAG_SIZE);
+			libfflag_err("Flag %s is too long (%ld > MAX=%ld).\n",
+				flag, (long)strlen(flag), MAX_FLAG_SIZE);
 			break;
 		}
 
@@ -95,12 +143,37 @@ int initcheck(void)
 		int tmpret = 0;
 
 		tmpret = is_fflag_dir_ok(FFLAG_DIR);
+		/* <0 : some error happned */
 		if (tmpret < 0)
 			break;
-		else if (!tmpret && mkdir(FFLAG_DIR, FFLAG_DIR_PERM))
-			break;
 
-		ret = 0;
+		/* >0 : directory exists, OK */
+		if (tmpret > 0) {
+			ret = 0;
+			break;
+		}
+
+		/* =0 : no directory, create it */
+		tmpret = mkdir(FFLAG_DIR, FFLAG_DIR_PERM);
+
+		/* =0 : successed to create it */
+		if (!tmpret) {
+			ret = 0;
+			break;
+		}
+
+		/*
+		 * <0 EEXIST:
+		 *	failed to create it, but someone else create it
+		 */
+		if ((tmpret < 2) && (errno == EEXIST)) {
+			ret = 0;
+			break;
+		}
+
+		/* some error happened */
+
+
 	} while (0);
 
 	return ret;
@@ -131,14 +204,15 @@ int wait_flag_on(const char *flag)
 
 		inotifyFd = inotify_init();
 		if (inotifyFd < 0) {
-			libfflag_err("Failed to init inotify(%d):%s.\n",
+			libfflag_err("Failed to init inotify(%d): %s.\n",
 					errno, strerror(errno));
 			break;
 		}
 
-		if (inotify_add_watch(inotifyFd, FFLAG_DIR, IN_CREATE) < 0) {
-			libfflag_err("Failed to add inotify watch (%d):%s.\n",
-					errno, strerror(errno));
+		if (inotify_add_watch(inotifyFd,
+				FFLAG_DIR, IN_ALL_EVENTS) < 0) {
+			libfflag_err("Failed to add inotify watch (%d): %s.\n",
+				errno, strerror(errno));
 			break;
 		}
 
@@ -171,10 +245,25 @@ int wait_flag_on(const char *flag)
 			while (p < event_buf + numRead) {
 				struct inotify_event *event;
 
+#define ERR_EVENTS		(IN_IGNORED | IN_MOVE_SELF)
+#define WAIT_FLAG_ON_EVENTS	(IN_CREATE | IN_MOVED_TO | ERR_EVENTS)
+
 				event = (struct inotify_event *)p;
-				if (event->name && !strcmp(flag, event->name)) {
-					ret = 0;
-					break;
+				print_event(event);
+
+				if ((event->mask & WAIT_FLAG_ON_EVENTS)) {
+					if (event->mask & ERR_EVENTS) {
+						libfflag_err("Wait failed. %s is removed?\n",
+							FFLAG_DIR);
+						ret = -2;
+						break;
+					}
+
+					if ((event->len > 0) &&
+						!strcmp(flag, event->name)) {
+						ret = 0;
+						break;
+					}
 				}
 
 				p += sizeof(struct inotify_event) + event->len;
@@ -182,7 +271,6 @@ int wait_flag_on(const char *flag)
 
 			if (ret != -1)
 				break;
-
 		}
 	} while (0);
 
@@ -220,8 +308,8 @@ int wait_flag_off(const char *flag)
 			break;
 		}
 
-		if (inotify_add_watch(inotifyFd,
-			FFLAG_DIR, IN_DELETE | IN_DELETE_SELF) < 0) {
+		if (inotify_add_watch(inotifyFd, FFLAG_DIR,
+				IN_ALL_EVENTS) < 0) {
 			libfflag_err("Failed to add inotify watch (%d):%s.\n",
 					errno, strerror(errno));
 			break;
@@ -256,18 +344,24 @@ int wait_flag_off(const char *flag)
 			while (p < event_buf + numRead) {
 				struct inotify_event *event;
 
+#define WAIT_FLAG_OFF_EVENTS	(IN_DELETE | IN_MOVED_FROM | ERR_EVENTS)
+
 				event = (struct inotify_event *)p;
-				if (event->mask & IN_DELETE) {
-					if (event->name &&
+				print_event(event);
+
+				if ((event->mask & WAIT_FLAG_OFF_EVENTS)) {
+					if (event->mask & ERR_EVENTS) {
+						libfflag_err("Wait failed. %s is removed?\n",
+							FFLAG_DIR);
+						ret = -2;
+						break;
+					}
+
+					if ((event->len > 1) &&
 						!strcmp(flag, event->name)) {
 						ret = 0;
 						break;
 					}
-				} else {
-					libfflag_err("FFLAG_DIR %s dispeared.\n",
-							FFLAG_DIR);
-					ret = -2;
-					break;
 				}
 
 				p += sizeof(struct inotify_event) + event->len;
