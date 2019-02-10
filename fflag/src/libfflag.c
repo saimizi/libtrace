@@ -179,6 +179,29 @@ int initcheck(void)
 	return ret;
 }
 
+int is_flag_on(const char *flag)
+{
+	int ret = 0;
+	char buf[NAME_BUFSZ];
+	struct stat	st;
+
+	do {
+		if (!is_flag_ok(flag))
+			break;
+
+		if (initcheck() < 0)
+			break;
+
+		sprintf(buf, "%s/%s", FFLAG_DIR, flag);
+		if (!stat(buf, &st)) {
+			ret = 1;
+			break;
+		}
+	} while (0);
+
+	return ret;
+}
+
 int wait_flag_on(const char *flag)
 {
 	int ret = -1;

@@ -30,6 +30,11 @@ int main(int argc, char *argv[])
 			break;
 		}
 
+		if (!strcmp(basename(argv[0]), "isfflagon")) {
+			ret = !is_flag_on(argv[1]);
+			break;
+		}
+
 	} while (0);
 
 	/* if success return 0 otherwise return 1 */
